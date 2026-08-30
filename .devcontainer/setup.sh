@@ -27,3 +27,6 @@ if [ ! -d "arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu" ]; then
   tar -xf gnu.tar.xz
   rm gnu.tar.xz
 fi
+echo "==> Configuring PATH..."
+echo 'export PATH="$HOME/clang-r353983c/bin:$HOME/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/clang-r353983c/bin:$HOME/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH"' >> ~/.zshrc
