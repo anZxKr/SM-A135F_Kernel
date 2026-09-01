@@ -31,7 +31,7 @@ jobs:
         
       - name: Generate .config
         run: |
-          make O=/tmp/kbuild-out \
+          make 
             ARCH = arm64 \
             CC= clang \
             CROSS_COMPILE=aarch64-none-linux-gnu- \
@@ -40,7 +40,7 @@ jobs:
       
       - name: Build Kernel
         run: |
-          make O=/tmp/kbuild-out \
+          make 
            ARCH=arm64 \
            CC= clang \
            CROSS_COMPILE=aarch64-none-linux-gnu- \
