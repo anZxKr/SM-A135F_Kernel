@@ -28,8 +28,23 @@ jobs:
         run: |
           echo "$HOME/clang-r353983c/bin" >> $GITHUB_PATH
           echo "$HOME/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin" >> $GITHUB_PATH
-
-      - name: Verify Toolchains
+        
+      - name: Generate .config
+        env:
+          PLATFORM_VERSION : 13
         run: |
-          clang --version
-          aarch64-none-linux-gnu-gcc --version
+          make O=/tmp/kbuild-out \
+            ARCH = arm64 \
+            CC= clang \
+            CROSS_COMPILE=aarch64-none-linux-gnu- \
+            CLANG_TRIPLE=aarch64-none-linux-gnu- \
+            exynos850-a13ks_defconfig droidspaces.config
+      
+      - name: Build Kernel
+        run: |
+          make O=/tmp/kbuild-out \
+           ARCH=arm64 \
+           CC= clang \
+           CROSS_COMPILE=aarch64-none-linux-gnu- \
+           CLANG_TRIPLE=aarch64-none-linux-gnu- \
+           -j$(nproc)
