@@ -17,7 +17,7 @@ jobs:
       - name: Download Clang
         run: |
           wget -P $HOME "https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/clang-r353983c.tar.gz"
-          mkdir -P $HOME/clang-r353983c && tar -xvf $HOME/clang-r353983c.tar.gz -C $HOME/clang-r353983c 
+          mkdir -p $HOME/clang-r353983c && tar -xvf $HOME/clang-r353983c.tar.gz -C $HOME/clang-r353983c 
 
       - name: Download GCC
         run: |
