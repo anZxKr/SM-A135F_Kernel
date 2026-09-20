@@ -33,12 +33,7 @@ jobs:
         env:
            PLATFORM_VERSION : 13
         run: |
-          make 
-            ARCH = arm64 \
-            CC= clang \
-            CROSS_COMPILE=aarch64-none-linux-gnu- \
-            CLANG_TRIPLE=aarch64-none-linux-gnu- \
-            exynos850-a13ks_defconfig droidspaces.config
+          make ARCH = arm64  CC= clang CROSS_COMPILE=aarch64-none-linux-gnu- CLANG_TRIPLE=aarch64-none-linux-gnu- exynos850-a13ks_defconfig droidspaces.config
       
       - name: Build Kernel
         run: |
