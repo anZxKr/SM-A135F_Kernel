@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodule: recursive
 
       - name: Install deps
         run: sudo apt-get update &&  sudo apt-get install -y build-essential flex bison bc libssl-dev libncurses-dev libelf-dev cpio rsync unzip kmod
@@ -37,9 +39,4 @@ jobs:
       
       - name: Build Kernel
         run: |
-          make 
-           ARCH=arm64 \
-           CC= clang \
-           CROSS_COMPILE=aarch64-none-linux-gnu- \
-           CLANG_TRIPLE=aarch64-none-linux-gnu- \
-           -j$(nproc)
+          make ARCH=arm64  CC=clang CROSS_COMPILE=aarch64-none-linux-gnu- CLANG_TRIPLE=aarch64-none-linux-gnu- -j$(nproc)
