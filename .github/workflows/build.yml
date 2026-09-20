@@ -17,22 +17,17 @@ jobs:
 
       - name: Install deps
         run: sudo apt-get update &&  sudo apt-get install -y build-essential flex bison bc libssl-dev libncurses-dev libelf-dev cpio rsync unzip kmod
-      
-      - name: Download Clang
-        run: |
-          wget -P $HOME "https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/clang-r353983c.tar.gz"
-          mkdir -p $HOME/clang-r353983c && tar -xf $HOME/clang-r353983c.tar.gz -C $HOME/clang-r353983c 
-
-      - name: Download GCC
-        run: |
-          wget -P $HOME "https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz"
-          tar -xf $HOME/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu.tar.xz -C $HOME
         
-      - name: Set Clang and GCC in PATH
+      - name: Setup Toolchains
         run: |
-          echo "$HOME/clang-r353983c/bin" >> $GITHUB_PATH
-          echo "$HOME/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu/bin" >> $GITHUB_PATH
-        
+          URL=https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains
+          GCC=arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-linux-gnu
+          mkdir -p $HOME/clang
+          wget -qO- $URL/clang-r353983c.tar.gz | tar -xz -C $HOME/clang
+          wget -qO- $URL/$GCC.tar.xz | tar -xJ -C $HOME
+          echo "$HOME/clang/bin" >> $GITHUB_PATH
+          echo "$HOME/$GCC/bin" >> $GITHUB_PATH
+          
       - name: Generate .config
         run: |
           make ARCH=arm64  CC=clang CROSS_COMPILE=aarch64-none-linux-gnu- CLANG_TRIPLE=aarch64-none-linux-gnu- exynos850-a13ks_defconfig droidspaces.config
