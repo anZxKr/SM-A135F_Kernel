@@ -1,5 +1,0 @@
-{
-  "name": "SM-A135F Kernel Build",
-  "image": "mcr.microsoft.com/devcontainers/universal:linux",
-  "postCreateCommand": "bash .devcontainer/setup.sh"
-}
