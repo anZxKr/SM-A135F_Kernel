@@ -46,6 +46,13 @@ jobs:
         run: |
           make ARCH=arm64 CC="ccache clang" CROSS_COMPILE=aarch64-none-linux-gnu- CLANG_TRIPLE=aarch64-none-linux-gnu- exynos850-a13ks_defconfig droidspaces.config
 
+      - name: Verify HID gadget config
+        run: |
+          grep -E "F_HID" .config || true
+          for o in CONFIG_USB_CONFIGFS_F_HID CONFIG_USB_F_HID; do
+            grep -qx "$o=y" .config || { echo "::error::$o is not enabled in .config"; exit 1; }
+          done
+
       - name: Build Kernel
         run: |
           make ARCH=arm64 CC="ccache clang" CROSS_COMPILE=aarch64-none-linux-gnu- CLANG_TRIPLE=aarch64-none-linux-gnu- -j$(nproc)
