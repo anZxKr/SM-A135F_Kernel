@@ -17,6 +17,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Unshallow KernelSU
+        run: git -C KernelSU fetch --unshallow --tags || true
+
       - name: Install deps
         run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential flex bison bc libssl-dev libncurses-dev libelf-dev cpio rsync unzip kmod ccache binutils-aarch64-linux-gnu
 
@@ -61,7 +64,8 @@ jobs:
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf \
             CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- \
             HOSTCFLAGS=-Wno-deprecated-declarations \
-            exynos850-a13ks_defconfig droidspaces.config
+            exynos850-a13ks_defconfig droidspaces.config \
+            2> >(grep --line-buffered -v "LLVM ERROR: IO failure on output stream: Broken pipe" >&2)
 
       - name: Build Kernel
         run: |
@@ -69,7 +73,8 @@ jobs:
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf \
             CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- \
             HOSTCFLAGS=-Wno-deprecated-declarations \
-            -j$(nproc)
+            -j$(nproc) \
+            2> >(grep --line-buffered -v "LLVM ERROR: IO failure on output stream: Broken pipe" >&2)
 
       - name: ccache stats
         run: ccache -s
