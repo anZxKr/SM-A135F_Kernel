@@ -28,10 +28,19 @@ jobs:
           restore-keys: |
             ccache-
 
+      - name: Cache clang
+        id: clang-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/clang
+          key: clang-r383902
+
       - name: Setup Toolchain
         run: |
-          mkdir -p $HOME/clang
-          wget -qO- https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/fcce3268397ce68ee36f9c52f3a55630897328b3/clang-r383902.tar.gz | tar -xz -C $HOME/clang
+          if [ "${{ steps.clang-cache.outputs.cache-hit }}" != "true" ]; then
+            mkdir -p $HOME/clang
+            wget -qO- https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/fcce3268397ce68ee36f9c52f3a55630897328b3/clang-r383902.tar.gz | tar -xz -C $HOME/clang
+          fi
           echo "$HOME/clang/bin" >> $GITHUB_PATH
           $HOME/clang/bin/clang --version | head -1
           for t in ld.lld llvm-ar llvm-nm llvm-objcopy llvm-objdump llvm-strip llvm-readelf; do
@@ -48,7 +57,7 @@ jobs:
 
       - name: Generate .config
         run: |
-          make ARCH=arm64 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm \
+          make ARCH=arm64 CC="ccache clang" cc-name=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf \
             CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- \
             HOSTCFLAGS=-Wno-deprecated-declarations \
@@ -56,7 +65,7 @@ jobs:
 
       - name: Build Kernel
         run: |
-          make ARCH=arm64 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm \
+          make ARCH=arm64 CC="ccache clang" cc-name=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip READELF=llvm-readelf \
             CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- \
             HOSTCFLAGS=-Wno-deprecated-declarations \
