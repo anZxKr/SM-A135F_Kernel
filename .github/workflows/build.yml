@@ -58,7 +58,8 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Kernel Image
+          name: Kernel Image & Modules
           path: |
             arch/arm64/boot/Image
             arch/arm64/boot/Image.gz
+            drivers/gpu/drm/vgem/vgem.ko
