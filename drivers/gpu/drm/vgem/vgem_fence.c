@@ -21,11 +21,14 @@
  */
 
 #include <linux/dma-buf.h>
+#include <linux/file.h>
 #include <linux/reservation.h>
+#include <linux/sync_file.h>
 
 #include "vgem_drv.h"
 
 #define VGEM_FENCE_TIMEOUT (10*HZ)
+#define VGEM_EXPORT_FENCE_TIMEOUT (30*HZ)
 
 struct vgem_fence {
 	struct dma_fence base;
@@ -92,8 +95,7 @@ static void vgem_fence_timeout(struct timer_list *t)
 	dma_fence_signal(&fence->base);
 }
 
-static struct dma_fence *vgem_fence_create(struct vgem_file *vfile,
-					   unsigned int flags)
+static struct dma_fence *vgem_fence_create_timeout(unsigned long timeout)
 {
 	struct vgem_fence *fence;
 
@@ -107,10 +109,15 @@ static struct dma_fence *vgem_fence_create(struct vgem_file *vfile,
 
 	timer_setup(&fence->timer, vgem_fence_timeout, 0);
 
-	/* We force the fence to expire within 10s to prevent driver hangs */
-	mod_timer(&fence->timer, jiffies + VGEM_FENCE_TIMEOUT);
+	mod_timer(&fence->timer, jiffies + timeout);
 
 	return &fence->base;
+}
+
+static struct dma_fence *vgem_fence_create(struct vgem_file *vfile,
+					   unsigned int flags)
+{
+	return vgem_fence_create_timeout(VGEM_FENCE_TIMEOUT);
 }
 
 static int attach_dmabuf(struct drm_device *dev,
@@ -259,6 +266,53 @@ int vgem_fence_signal_ioctl(struct drm_device *dev,
 	dma_fence_signal(fence);
 	dma_fence_put(fence);
 	return ret;
+}
+
+int vgem_fence_export_sync_file_ioctl(struct drm_device *dev,
+				      void *data,
+				      struct drm_file *file)
+{
+	struct vgem_file *vfile = file->driver_priv;
+	struct drm_vgem_fence_export_sync_file *arg = data;
+	struct dma_fence *fence;
+	struct sync_file *sync_file;
+	int fd, id;
+
+	if (arg->flags || arg->pad)
+		return -EINVAL;
+
+	fd = get_unused_fd_flags(O_CLOEXEC);
+	if (fd < 0)
+		return fd;
+
+	fence = vgem_fence_create_timeout(VGEM_EXPORT_FENCE_TIMEOUT);
+	if (!fence) {
+		put_unused_fd(fd);
+		return -ENOMEM;
+	}
+
+	sync_file = sync_file_create(fence);
+	if (!sync_file) {
+		dma_fence_signal(fence);
+		dma_fence_put(fence);
+		put_unused_fd(fd);
+		return -ENOMEM;
+	}
+
+	mutex_lock(&vfile->fence_mutex);
+	id = idr_alloc(&vfile->fence_idr, fence, 1, 0, GFP_KERNEL);
+	mutex_unlock(&vfile->fence_mutex);
+	if (id < 0) {
+		fput(sync_file->file);
+		dma_fence_put(fence);
+		put_unused_fd(fd);
+		return id;
+	}
+
+	fd_install(fd, sync_file->file);
+	arg->fd = fd;
+	arg->out_fence = id;
+	return 0;
 }
 
 int vgem_fence_open(struct vgem_file *vfile)

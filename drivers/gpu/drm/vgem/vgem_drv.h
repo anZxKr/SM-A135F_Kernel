@@ -58,6 +58,9 @@ int vgem_fence_attach_ioctl(struct drm_device *dev,
 int vgem_fence_signal_ioctl(struct drm_device *dev,
 			    void *data,
 			    struct drm_file *file);
+int vgem_fence_export_sync_file_ioctl(struct drm_device *dev,
+				      void *data,
+				      struct drm_file *file);
 void vgem_fence_close(struct vgem_file *file);
 
 #endif
