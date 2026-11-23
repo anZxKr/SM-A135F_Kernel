@@ -253,7 +253,7 @@ int vgem_fence_signal_ioctl(struct drm_device *dev,
 		return -EINVAL;
 
 	mutex_lock(&vfile->fence_mutex);
-	fence = idr_replace(&vfile->fence_idr, NULL, arg->fence);
+	fence = idr_remove(&vfile->fence_idr, arg->fence);
 	mutex_unlock(&vfile->fence_mutex);
 	if (!fence)
 		return -ENOENT;
